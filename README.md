@@ -10,6 +10,8 @@ section for its exact figure.
 **Live:** [adrh.corunalabs.org](https://adrh.corunalabs.org) ·
 **Data:** [INE, Atlas de Distribución de Renta de los Hogares, 2023](https://www.ine.es/dyngs/INEbase/operacion.htm?c=Estadistica_C&cid=1254736177088&menu=resultados&idp=1254735976608)
 
+![ADRH Mapper](screengrab.gif)
+
 ---
 
 ## What it shows

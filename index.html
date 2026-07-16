@@ -19,6 +19,12 @@
   body{font-family:"Inter","Helvetica Neue",Arial,system-ui,sans-serif;color:var(--ink);
     background:var(--paper);-webkit-font-smoothing:antialiased;overflow:hidden}
   #map{position:absolute;inset:0}
+  /* MapLibre sets grab/grabbing on the canvas by default; this tool keeps the
+     plain arrow throughout — the hover outline is the only affordance. */
+  #map .maplibregl-canvas-container,
+  #map .maplibregl-canvas-container.maplibregl-interactive,
+  #map .maplibregl-canvas-container.maplibregl-interactive:active,
+  #map canvas{cursor:default !important}
 
   /* ---------- Masthead: gradient bleed, flush top-left, no card/shadow ---------- */
   .masthead{position:absolute;top:0;left:0;z-index:5;padding:20px 22px 26px;max-width:380px;
@@ -187,6 +193,7 @@ const DATA_URL     = "data/adrh_cusec_2023.geojson";
 const FILL_OPACITY = 0.72;                       // choropleth transparency (0-1)
 const BORDER       = { color:"#ffffff", width:0.8, opacity:0.85 }; // soft edges, no geometry distortion
 const HIGHLIGHT    = { color:"#16181a", width:2 };
+const HOVER        = { color:"#7c848b", width:2.6, opacity:0.3 }; // thicker but soft — a hint, not a click
 const NODATA       = { color:"#dadcde", opacity:0.35 };            // suppressed sections
 const N_CLASSES    = 5;                          // quantile classes
 const RAMP = ["#e9f0f4","#c3d5e0","#8fb0c2","#54809c","#1B4965"]; // sequential: light → Atlantic blue
@@ -537,17 +544,36 @@ map.on("load", async () => {
     feats = data.features;
     const beforeId = roadsBeforeId();
 
-    map.addSource("sections",{type:"geojson",data});
+    map.addSource("sections",{type:"geojson",data,generateId:true}); // generateId enables feature-state hover
     map.addLayer({ id:"sections-fill", type:"fill", source:"sections",
       paint:{ "fill-color":fillExpr(activeKey), "fill-opacity":opacityExpr(activeKey) } }, beforeId);
     map.addLayer({ id:"sections-line", type:"line", source:"sections",
       paint:{ "line-color":BORDER.color, "line-width":BORDER.width, "line-opacity":BORDER.opacity } }, beforeId);
+    map.addLayer({ id:"sections-hover", type:"line", source:"sections",
+      paint:{ "line-color":HOVER.color, "line-width":HOVER.width,
+              // feature-state drives opacity, so moving between polygons fades
+              // rather than snapping — a filter swap would be instant.
+              "line-opacity":["case",["boolean",["feature-state","hover"],false], HOVER.opacity, 0],
+              "line-opacity-transition":{duration:260, delay:0} } });
     map.addLayer({ id:"sections-hi", type:"line", source:"sections",
       filter:["==",["get","CUSEC"],""],
       paint:{ "line-color":HIGHLIGHT.color, "line-width":HIGHLIGHT.width } }); // highlight above roads, deliberately
 
-    map.on("mousemove","sections-fill",()=>map.getCanvas().style.cursor="pointer");
-    map.on("mouseleave","sections-fill",()=>map.getCanvas().style.cursor="");
+    let hoveredId = null;
+    map.on("mousemove","sections-fill",(e)=>{
+      // No cursor change — the hover outline is the affordance. A pointer/hand
+      // cursor reads as "button" and fights the map's exploratory register.
+      if(!e.features.length) return;
+      const id = e.features[0].id;
+      if(hoveredId===id) return;
+      if(hoveredId!==null) map.setFeatureState({source:"sections",id:hoveredId},{hover:false});
+      hoveredId = id;
+      map.setFeatureState({source:"sections",id:hoveredId},{hover:true});
+    });
+    map.on("mouseleave","sections-fill",()=>{
+      if(hoveredId!==null) map.setFeatureState({source:"sections",id:hoveredId},{hover:false});
+      hoveredId = null;
+    });
     map.on("click",(e)=>{
       const hit = map.queryRenderedFeatures(e.point,{layers:["sections-fill"]});
       if(hit.length) openSection(hit[0].properties);

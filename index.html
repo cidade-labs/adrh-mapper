@@ -104,7 +104,7 @@
   /* Mobile: the rail strip flips fully to the detail — chip list + legend hide,
      detail takes over with a back arrow to return. One surface, no floating sheet. */
   @media (max-width:640px){
-    .detail{border-top:none;max-height:none;overflow:visible}
+    .detail{border-top:none;max-height:0;overflow:hidden}
     .rail.has-detail .detail{max-height:none;overflow-y:auto;flex:1 1 auto}
     .rail.has-detail .scroll,
     .rail.has-detail .legend,

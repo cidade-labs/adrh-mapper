@@ -504,6 +504,7 @@ const map = new maplibregl.Map({
 });
 map.touchZoomRotate.disableRotation();
 map.addControl(new maplibregl.NavigationControl({showCompass:false}),"bottom-left");
+new ResizeObserver(() => map.resize()).observe(document.getElementById("map"));
 
 /* Layer ordering: the choropleth must sit ABOVE the basemap's land and
    building layers (so buildings don't punch through and hide data in dense

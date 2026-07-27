@@ -5,10 +5,17 @@ base <- "https://www.ine.es/geoserver/ogc/features/v1/collections/WMS_INE_SECCIO
 q <- paste0(base, "?f=application/json&limit=1000",
             "&filter=", URLencode("CUMUN='15030'"), "&filter-lang=cql-text")
 
-geo <- st_read(q) %>%
+geo_raw <- st_read(q) %>%
   st_transform(4326) %>%
   mutate(CUSEC = as.character(CUSEC)) %>%
   select(CUSEC)
+
+# INE answers a municipality filter with the census sections *and* the district
+# roll-up polygons that contain them — CUSEC ending in "000". Those ten have no
+# indicator values of their own, so left in they sit on top of the real sections
+# and paint a third of the municipality no-data grey. This is the geometry-side
+# equivalent of utils.R::drop_rollup_rows.
+geo <- geo_raw %>% filter(substr(CUSEC, 8, 10) != "000")
 
 # --- 2. Load and merge the 15 clean indicator tables ---
 files <- c(
@@ -36,8 +43,10 @@ joined <- reduce(tabs, full_join, by = "CUSEC")
 out <- geo %>% left_join(joined, by = "CUSEC")
 
 # sanity checks before writing
+cat("Polygons returned by INE:", nrow(geo_raw), "\n")
+cat("District roll-ups dropped:", nrow(geo_raw) - nrow(geo), "\n")
 cat("Geometry sections:", nrow(geo), "\n")
 cat("Sections with no income match:", sum(is.na(out$income_mean_household)), "\n")
+stopifnot(nrow(out) == nrow(geo), !any(grepl("000$", out$CUSEC)))
 
-dir.create("data", showWarnings = FALSE)
-st_write(out, "geo/adrh_cusec_2023.geojson", delete_dsn = TRUE)
+st_write(out, "adrh_cusec_2023.geojson", delete_dsn = TRUE)

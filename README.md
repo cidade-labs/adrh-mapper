@@ -7,7 +7,7 @@ Every polygon is a *sección censal*, the smallest unit Spain's statistical
 office publishes at. Pick an indicator, read the city by color, click any
 section for its exact figure.
 
-**Live:** [adrh.corunalabs.org](https://adrh.corunalabs.org) ·
+**Live:** [adrh.cidadelabs.org](https://adrh.cidadelabs.org) ·
 **Data:** [INE, Atlas de Distribución de Renta de los Hogares, 2023](https://www.ine.es/dyngs/INEbase/operacion.htm?c=Estadistica_C&cid=1254736177088&menu=resultados&idp=1254735976608)
 
 ![ADRH Mapper](screengrab.gif)
@@ -166,10 +166,10 @@ from.
 
 ## About
 
-ADRH Mapper is a project of [Coruña Labs](https://corunalabs.org), a small,
-independent, non-profit civic-tech lab for A Coruña. It works in Galician
+ADRH Mapper is a project of [Cidade Labs](https://cidadelabs.org), a small,
+independent, non-profit civic-tech lab for Galicia. It works in Galician
 (default), Spanish, and English.
 
 Data © INE, reused under its terms. Map © CARTO, © OpenStreetMap contributors.
 
-*Datos, mapas e cidade. Ferramentas cívicas para A Coruña.*
+*Datos, mapas e cidade. Ferramentas cívicas para Galicia.*
